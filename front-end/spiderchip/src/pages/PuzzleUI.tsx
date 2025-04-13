@@ -32,6 +32,7 @@ export default function PuzzleUI(props: { level: LevelItem }) {
     const [code, setCode] = useState<string>("");4
     const [parserOutput, setParserOutput] = useState<string>("");
     const [initialVars, setInitialVars] = useState<CustomSlot[]>([]);
+    const [executedLine, setExecutedLine] = useState<number | undefined>(1);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
@@ -96,13 +97,17 @@ export default function PuzzleUI(props: { level: LevelItem }) {
                 <div className="header">
                     <img src={InputIcon} alt="Input Icon" />
                 </div>
-                <PuzzleInput initialValue={code} onChange={setCode}/>
+                <PuzzleInput 
+                  initialValue={code}
+                  onChange={setCode}
+                  executedLine={executedLine}
+                />
                 <div className="action-buttons">
                     <button className="run-button" onClick={() => initializeRuntime(code, setParserOutput, initialVars)}>
                         <img src={PlayIcon} />
                         Run
                     </button>
-                    <button className="step-button" onClick={() => stepCode(setParserOutput)}>
+                    <button className="step-button" onClick={() => stepCode(setParserOutput, setExecutedLine)}>
                         <img src={StepIcon} />
                         Step
                     </button>

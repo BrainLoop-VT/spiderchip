@@ -39,17 +39,21 @@ import {
     if (state) updateOutput(state, setParserOutput);
   };
   
-  export const stepCode = (setParserOutput: (output: string) => void) => {
+  export const stepCode = (
+    setParserOutput: (output: string) => void,
+    setExecutedLine: (line: number | undefined) => void
+  ) => {
     if (!runtimeRef.current) return;
   
     runtimeRef.current.step();
     const state = runtimeRef.current.state();
-    if (state) updateOutput(state, setParserOutput);
+    if (state) updateOutput(state, setParserOutput, setExecutedLine);
   };
   
   export const updateOutput = (
     state: SpiderState,
-    setParserOutput: (output: string) => void
+    setParserOutput: (output: string) => void,
+    setExecutedLine?: (line: number | undefined) => void
   ) => {
     let outputMessage = "";
   
@@ -64,7 +68,8 @@ import {
         outputMessage = `Runtime Error: ${state.error}`;
         break;
       case SpiderStateEnum.RUNNING:
-        outputMessage = `Running... Currently at line ${state.line}`;
+        // outputMessage = `Running... Currently at line ${state.line}`;
+        outputMessage = "";
         break;
       case SpiderStateEnum.SUCCESS:
         outputMessage = "Execution Successful!";
@@ -79,14 +84,24 @@ import {
         outputMessage = "Unknown state.";
     }
   
-    state.varslots.forEach((slot, i) => {
-      outputMessage += `\nTape Slot ${i}: ${slot.value} (${slot.name})`;
-    });
+    // state.varslots.forEach((slot, i) => {
+    //   outputMessage += `\nTape Slot ${i}: ${slot.value} (${slot.name})`;
+    // });
   
-    state.objs.forEach((obj) => {
-      outputMessage += `\n${obj.type} '${obj.name}' Contents: ${obj.contents.join(", ")}`;
-    });
+    // state.objs.forEach((obj) => {
+    //   outputMessage += `\n${obj.type} '${obj.name}' Contents: ${obj.contents.join(", ")}`;
+    // });
+
+    if (state.output.length > 0) {
+      state.output.forEach((val, _) => {
+        outputMessage += `\n${val}`;
+      });
+    }
   
     setParserOutput(outputMessage.trim());
+
+    if (setExecutedLine) {
+      setExecutedLine(state.line);
+    }
 };
   
