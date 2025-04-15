@@ -4,6 +4,7 @@ export class GameLevel {
     id: string;
     title: string;
     description: string;
+    preDescription?: string;
     inputData: LevelInput;
     createdAt: Date;
     updatedAt: Date;
@@ -12,6 +13,7 @@ export class GameLevel {
         this.id = data.id;
         this.title = data.title;
         this.description = data.description;
+        this.preDescription = data.pre_description;
         this.inputData = new LevelInput(data.input_data);
         this.createdAt = new Date(data.created_at);
         this.updatedAt = new Date(data.updated_at);
@@ -23,9 +25,10 @@ export class GameLevel {
             id: this.id,
             title: this.title,
             description: this.description,
+            pre_description: this.preDescription,
             input_data: this.inputData.toJSON(),
             created_at: this.createdAt,
             updated_at: this.updatedAt
         };
     }
-} 
+}

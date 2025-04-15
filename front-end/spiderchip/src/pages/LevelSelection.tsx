@@ -7,6 +7,7 @@ import {useEffect, useRef, useState} from "react";
 import { CSSTransition } from "react-transition-group";
 import { setAuthToken } from "../services/api.ts";
 import { useNavigate } from "react-router-dom";
+import { api } from '../services/api';
 
 export default function LevelSelection(props: { setSelectedLevel: (level: LevelItem | null) => void }) {
     const [selectedLevel, setLocalSelectedLevel] = useState<LevelItem | null>(null);
@@ -14,22 +15,26 @@ export default function LevelSelection(props: { setSelectedLevel: (level: LevelI
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const navigate = useNavigate();
     const popupRef = useRef<HTMLDivElement>(null);
+    const [levelList, setLevelList] = useState<LevelItem[]>([]);
 
-    const [levelList, setLevelList] = useState<LevelItem[]>([
-        {id: 1, title: "Level 1", category: "Category 1", description: "Description 1", status: "completed"},
-        {id: 2, title: "Level 2", category: "Category 2", description: "Description 2", status: "skipped"},
-        {id: 3, title: "Level 3", category: "Category 3", description: "Description 3", status: "available"},
-        {id: 4, title: "Level 4", category: "Category 4", description: "Description 4", status: "not-available"},
-    ]);
+    useEffect(() => {
+        const fetchLevels = async () => {
+            try {
+                console.log('Auth header:', api.defaults.headers.common["Authorization"]);
+                const response = await api.get('/levels');
+                const sortedLevels = response.data.sort((a: LevelItem, b: LevelItem) => a.puzzleNumber - b.puzzleNumber);
+                setLevelList(sortedLevels);
+            } catch (error: any) {
+                console.error('Failed to fetch levels:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    headers: error.response?.headers
+                });
+            }
+        };
 
-    // TODO: implement to retrieve list of levels instead of static list
-    // useEffect(() => {
-    //     const fetchLevels = async() => {
-    //         try {
-    //             const response = await fetch("api/users/level")
-    //         }
-    //     }
-    // })
+        fetchLevels();
+    }, []);
 
     const toggleDropdown = () => {
         setDropdownVisible(!dropdownVisible)
@@ -41,7 +46,7 @@ export default function LevelSelection(props: { setSelectedLevel: (level: LevelI
         props.setSelectedLevel(level);
     }
 
-    const updateLevelStatus = (levelId: number, newStatus: string) => {
+    const updateLevelStatus = (levelId: string, newStatus: LevelItem['status']) => {
         setLevelList(prevLevels =>
             prevLevels.map(level =>
                 level.id === levelId ? {...level, status: newStatus} : level
@@ -50,7 +55,7 @@ export default function LevelSelection(props: { setSelectedLevel: (level: LevelI
 
         setLocalSelectedLevel(prevLevel =>
             prevLevel && prevLevel.id === levelId ? {...prevLevel, status: newStatus} : prevLevel
-        )
+        );
     };
 
     const handleHome = () => {

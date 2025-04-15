@@ -10,24 +10,24 @@ export class UserProgress {
     userId: string;
     levelId: string;
     completed: boolean;
-    currentSolution?: string;  // Store the user's current code
-    testCaseResults: TestCaseResult[];
+    current_solution?: string;  // Match database column name
+    test_case_results: TestCaseResult[];  // Match database column name
     attempts: number;
-    createdAt: Date;
-    updatedAt: Date;
-    lastAttemptAt?: Date;
+    created_at: Date;
+    updated_at: Date;
+    last_attempt_at?: Date;  // Match database column name
 
     constructor(data: any) {
         this.id = data.id;
         this.userId = data.user_id;
         this.levelId = data.level_id;
         this.completed = data.completed;
-        this.currentSolution = data.current_solution;
-        this.testCaseResults = data.test_case_results || [];
+        this.current_solution = data.current_solution;
+        this.test_case_results = data.test_case_results || [];
         this.attempts = data.attempts || 0;
-        this.createdAt = new Date(data.created_at);
-        this.updatedAt = new Date(data.updated_at);
-        this.lastAttemptAt = data.last_attempt_at ? new Date(data.last_attempt_at) : undefined;
+        this.created_at = new Date(data.created_at);
+        this.updated_at = new Date(data.updated_at);
+        this.last_attempt_at = data.last_attempt_at ? new Date(data.last_attempt_at) : undefined;
     }
 
     toJSON() {
@@ -36,23 +36,23 @@ export class UserProgress {
             user_id: this.userId,
             level_id: this.levelId,
             completed: this.completed,
-            current_solution: this.currentSolution,
-            test_case_results: this.testCaseResults,
+            current_solution: this.current_solution,
+            test_case_results: this.test_case_results,
             attempts: this.attempts,
-            created_at: this.createdAt,
-            updated_at: this.updatedAt,
-            last_attempt_at: this.lastAttemptAt
+            created_at: this.created_at,
+            updated_at: this.updated_at,
+            last_attempt_at: this.last_attempt_at
         };
     }
 
     // Helper method to update test case results
     updateTestCaseResult(testCaseId: number, passed: boolean) {
-        const existingResult = this.testCaseResults.find(r => r.testCaseId === testCaseId);
+        const existingResult = this.test_case_results.find(r => r.testCaseId === testCaseId);
         if (existingResult) {
             existingResult.passed = passed;
             existingResult.lastAttempt = new Date();
         } else {
-            this.testCaseResults.push({
+            this.test_case_results.push({
                 testCaseId,
                 passed,
                 lastAttempt: new Date()

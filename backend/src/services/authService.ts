@@ -19,7 +19,16 @@ export const registerUser = async (user: UserRequest): Promise<UserResponse> => 
     }
 };
 
-export const loginUser = async (user: Pick<UserRequest, "email" | "password">): Promise<UserResponse | null> => {
+interface AuthResponse {
+    token: string;
+    user: {
+        id: string;
+        email: string;
+        username: string;
+    }
+}
+
+export const loginUser = async (user: Pick<UserRequest, "email" | "password">): Promise<AuthResponse> => {
     const userRecord = await getUserByEmail(user.email);
     const isValidPassword = await bcrypt.compare(user.password, userRecord.hashed_password);
     if (!isValidPassword) {
@@ -27,11 +36,20 @@ export const loginUser = async (user: Pick<UserRequest, "email" | "password">): 
     };
 
     try {
-        const token = jwt.sign({ id: userRecord.id }, globalConfig.jwt.secret, {
-            expiresIn: globalConfig.jwt.expiresIn
-        });
+        const token = jwt.sign(
+            { id: userRecord.id, email: userRecord.email },
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: '24h' }
+        );
     
-        return { token };
+        return {
+            token: token,
+            user: {
+                id: userRecord.id,
+                email: userRecord.email,
+                username: userRecord.username
+            }
+        };
     } catch (error) {
         throw new InternalServerError("Failed to generate authentication token");
     }

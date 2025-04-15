@@ -4,7 +4,8 @@ import Game from './pages/Game';
 import LevelSelection from "./pages/LevelSelection.tsx";
 import PuzzleUI from "./pages/PuzzleUI.tsx";
 import { LevelItem } from "./types.ts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { setAuthToken } from './services/api.ts';
 
 const isAuthenticated = () => {
     return !!localStorage.getItem("token");
@@ -21,6 +22,13 @@ const PublicRoute = ({children}: { children: JSX.Element }) => {
 
 function App() {
     const [selectedLevel, setSelectedLevel] = useState<LevelItem | null>(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setAuthToken(token);
+        }
+    }, []);
 
     return (
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

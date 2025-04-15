@@ -1,0 +1,138 @@
+.about-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+}
+
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.content-overlay {
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+}
+
+.about-content {
+    background: var(--background-secondary);
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.about-container h1 {
+    color: var(--text-accent);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.about-container section {
+    margin-bottom: 2rem;
+}
+
+.about-container h2 {
+    color: var(--text-accent);
+    margin-bottom: 1rem;
+}
+
+.about-container ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.about-container li {
+    margin: 0.5rem 0;
+    position: relative;
+    display: block;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    padding-right: 1rem;
+}
+
+.about-container li::before {
+    content: "•";
+    color: var(--text-accent);
+    position: absolute;
+    left: -1.5rem;
+    top: 0;
+}
+
+.about-container li + li {
+    margin-top: 0.75rem;
+}
+
+.about-container p {
+    white-space: pre-wrap;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.about-container .navigation-button {
+    display: block;
+    margin: 2rem auto;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--button-primary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.about-container .navigation-button:hover {
+    background-color: var(--button-hover);
+}
+
+/*Style the scrollbar to have a Windows 95-like appearance*/
+.about-container .markdown-body {
+    scrollbar-width: auto;
+    scrollbar-color: #c0c0c0 #f0f0f0;
+}
+
+.about-container .markdown-body::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+}
+
+.about-container .markdown-body::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-left: 1px solid #888888;
+} 
+
+.about-container .markdown-body::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 0;
+    border: 1px solid #888888;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    box-shadow: inset 1px 1px #dfdfdf;
+}
+
+.about-container .markdown-body::-webkit-scrollbar-button {
+    background: #c0c0c0;
+    border: 1px solid #888888;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    box-shadow: inset 1px 1px #dfdfdf;
+    width: 16px;
+    height: 16px;
+}
+
+.markdown-body {
+    padding-bottom: 1rem;
+}

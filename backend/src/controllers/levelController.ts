@@ -16,10 +16,13 @@ export class LevelController {
     // Get all levels (optionally with user progress)
     static async getAllLevels(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log('Getting all levels');
             const userId = req.query.userId as string | undefined;
-            const levels = await LevelService.getAllLevels(userId);
+            const levels = await LevelService.getAllLevelsProgress(userId);
+            console.log(`Found ${levels.length} levels`);
             res.json(levels);
         } catch (error) {
+            console.error('Error getting levels:', error);
             next(error);
         }
     }

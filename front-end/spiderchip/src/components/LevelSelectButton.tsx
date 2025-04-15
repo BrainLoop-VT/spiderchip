@@ -7,12 +7,14 @@ import hoverFolder from '../assets/images/folder-hover.svg';
 import activeFolder from '../assets/images/folder-active.svg';
 import {useState} from "react";
 
-export default function LevelSelectButton(props: {
-    level: LevelItem,
-    isActive: boolean,
-    setSelectedLevel: (level: LevelItem) => void,
-    updateLevelStatus: (levelId: number, newStatus: string) => void;
-}) {
+interface Props {
+    level: LevelItem;
+    isActive: boolean;
+    setSelectedLevel: (level: LevelItem) => void;
+    updateLevelStatus: (levelId: string, newStatus: LevelItem['status']) => void;
+}
+
+export default function LevelSelectButton(props: Props) {
     const [isHovered, setIsHovered] = useState(false);
 
     const handleMouseEnter = () => {
@@ -68,8 +70,11 @@ export default function LevelSelectButton(props: {
                 onClick={() => handleLevelOnClick()}
                 disabled={props.level.status === "not-available"}
             >
-                <h2>{props.level.title}</h2>
-                <h3>{props.level.category}</h3>
+                <h2>
+                    {props.level.title.split(' ').map((word, index) => (
+                        <div key={index}>{word}</div>
+                    ))}
+                </h2>
                 <div className="status-icon">
                     {renderStatusIcon()}
                 </div>

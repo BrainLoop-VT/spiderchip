@@ -1,41 +1,50 @@
 // This would contain the specific structure for the level's input data
-export interface TestCase {
-    input: any[];    // Will refine this type once input format is clear
-    expectedOutput: any[];  // Will refine this type once output format is clear
-    description?: string;  // Optional description of what the test case verifies
+interface TestCase {
+    input: number[];
+    expected_output: number[];
+    description: string;
+}
+
+interface PuzzleObject {
+    name: string;
+    type: string;
+    // Additional object properties can be added as needed
 }
 
 export class LevelInput {
-    puzzleData: {
-        initialState: any;  // Initial state of the puzzle
-        constraints?: string[];  // Any constraints on the solution
-        availableCommands: string[];  // Commands available to the user
-    };
-    
+    slotCount: number;
+    slotNames: (string | null)[];
+    objects: PuzzleObject[];
     testCases: TestCase[];
-    
-    // Optional metadata about the puzzle
-    metadata?: {
-        estimatedTime?: number;  // in minutes
-        prerequisites?: string[];  // IDs of levels that should be completed first? Just a placeholder for now
-    };
+    solutionCode: string;
+    targetLineCount: number;
+    bonusSolutionCode?: string;
+    bonusLineCount?: number;
+    hints: string[];
 
     constructor(data: any) {
-        this.puzzleData = {
-            initialState: data.puzzleData?.initialState || {},
-            constraints: data.puzzleData?.constraints || [],
-            availableCommands: data.puzzleData?.availableCommands || []
-        };
-        
-        this.testCases = data.testCases || [];
-        this.metadata = data.metadata;
+        this.slotCount = data.slot_count;
+        this.slotNames = data.slot_names;
+        this.objects = data.objects || [];
+        this.testCases = data.test_cases;
+        this.solutionCode = data.solution_code;
+        this.targetLineCount = data.target_line_count;
+        this.bonusSolutionCode = data.bonus_solution_code;
+        this.bonusLineCount = data.bonus_line_count;
+        this.hints = data.hints || [];
     }
 
     toJSON() {
         return {
-            puzzleData: this.puzzleData,
-            testCases: this.testCases,
-            metadata: this.metadata
+            slot_count: this.slotCount,
+            slot_names: this.slotNames,
+            objects: this.objects,
+            test_cases: this.testCases,
+            solution_code: this.solutionCode,
+            target_line_count: this.targetLineCount,
+            bonus_solution_code: this.bonusSolutionCode,
+            bonus_line_count: this.bonusLineCount,
+            hints: this.hints
         };
     }
 } 

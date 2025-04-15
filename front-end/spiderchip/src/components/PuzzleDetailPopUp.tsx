@@ -4,11 +4,13 @@ import paperBkg from "../assets/images/paper-background.svg"
 import "./PuzzleDetailPopUp.css"
 import {useEffect, useState} from "react";
 
-export default function PuzzleDetailsPopUp(props: {
-    level: LevelItem,
-    setSelectedLevel: (level: LevelItem | null) => void,
-    updateLevelStatus: (levelId: number, newStatus: string) => void
-}) {
+interface Props {
+    level: LevelItem;
+    setSelectedLevel: (level: LevelItem | null) => void;
+    updateLevelStatus: (levelId: string, newStatus: LevelItem['status']) => void;
+}
+
+export default function PuzzleDetailsPopUp(props: Props) {
     if (!props.level) return null;
 
     const navigate = useNavigate();
@@ -37,10 +39,8 @@ export default function PuzzleDetailsPopUp(props: {
                 <div className="puzzle-details">
                     <div>
                         <h1>{props.level.title}</h1>
-                        <h2>{props.level.category}</h2>
+                        <p>{props.level.preDescription}</p>
                     </div>
-                    <p>Level Lore Goes Here. Lorem ipsum odor amet, consectetuer adipiscing elit. Sapien magnis integer
-                        nascetur nullam porttitor quam fusce litora.</p>
                     <div>
                         <h3>Instructions</h3>
                         <p>{props.level.description}</p>
