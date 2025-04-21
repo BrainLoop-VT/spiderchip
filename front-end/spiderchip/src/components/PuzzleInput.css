@@ -31,3 +31,19 @@
 .editor-wrapper:hover .button-format {
     opacity: 1.0;
 }
+
+.line-highlight-debug {
+    background-color: rgba(0, 0, 255, 0.3);
+}
+
+.line-highlight-info {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.line-highlight-success {
+    background-color: rgba(0, 255, 0, 0.3);
+}
+
+.line-highlight-warning {
+    background-color: rgba(255, 0, 0, 0.3);
+}

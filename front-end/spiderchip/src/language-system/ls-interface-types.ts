@@ -7,7 +7,7 @@ export class Puzzle {
 
     constructor(slotCount: number,
         testCases: PuzzleTest[],
-        defaultSlotNames: string[] | null = null,
+        defaultSlotNames: (string | null | undefined)[] | null = null,
         canEditSlots: boolean = false,
         canRenameSlots: boolean = true) {
         this.slotCount = slotCount;
@@ -162,6 +162,68 @@ export class SpiderObject {
     }
 }
 
-export class SpiderAnimation {
-    // TODO: Not implemented. Not targeted for MVP.
+export enum SpiderAnimationType {
+    OUTPUT,
+    INPUT,
+    LOAD,
+    STORE,
+    MATH,
+    MATH_SHORTED,
+    MATH_UNARY,
+    OBJ_TAKE,
+    OBJ_PUSH,
+    OBJ_EXAMINE,
+    HALT,
 }
+
+export type SpiderAnimation<AnimType = SpiderAnimationType> =
+    AnimType extends SpiderAnimationType.OUTPUT ? {
+        type: AnimType;
+        n: number; // output this value
+    } : AnimType extends SpiderAnimationType.INPUT ? {
+        type: AnimType;
+        n: number; // read this value from input
+    } : AnimType extends SpiderAnimationType.LOAD ? {
+        type: AnimType;
+        n: number; // read this value
+        slot: number; // from this slot index
+    } : AnimType extends SpiderAnimationType.STORE ? {
+        type: AnimType;
+        n: number; // store this value
+        slot: number; // to this slot index
+    } : AnimType extends SpiderAnimationType.MATH ? {
+        type: AnimType;
+        result: number; // result of operation
+        operator: string; // the operator to apply
+        left: number; // left-hand side
+        right: number; // right-hand side
+    } : AnimType extends SpiderAnimationType.MATH_SHORTED ? {
+        type: AnimType;
+        result: number; // result of operation
+        operator: string; // the operator to apply
+        left: number; // left-hand side - we short circuited, so show something like "left || ~~"
+    } : AnimType extends SpiderAnimationType.MATH_UNARY ? {
+        type: AnimType;
+        result: number; // result of operation
+        operator: string; // the operator to apply
+        value: number; // the value to apply to
+    } : AnimType extends SpiderAnimationType.OBJ_TAKE ? {
+        type: AnimType;
+        n: number; // value taken
+        object: string; // object to take from
+        index: number; // index in their internal array it was removed from
+    } : AnimType extends SpiderAnimationType.OBJ_PUSH ? {
+        type: AnimType;
+        n: number; // value added
+        object: string; // object to push to
+        index: number; // index that the value is at after adding
+    } : AnimType extends SpiderAnimationType.OBJ_EXAMINE ? {
+        type: AnimType;
+        n: number; // value read (e.g. from .length() call)
+        object: string; // object to examine
+    } : AnimType extends SpiderAnimationType.HALT ? {
+        type: AnimType;
+        crash: boolean; // true if they crashed, false if it's a benign halt (e.g. "no more inputs")
+    } : {
+        type: never;
+    }

@@ -783,3 +783,37 @@ test("complex branching works", () => {
     expect(finalState.line).toBe(14); // 2> end()
     expect(finalState.state).toBe(LT.SpiderStateEnum.FAIL);
 });
+
+test("equation-only lines work", () => {
+    const puzzleStackCase = [new LT.PuzzleTest([new LT.SpiderObject("stack", "s", [])], null, [1, 2], [2, 1])];
+    const puzzleStack = new LT.Puzzle(2, puzzleStackCase, null, true, true);
+    const rt = createRuntime(puzzleStack);
+    let state: LT.SpiderState;
+
+    rt.init("1 + 2", [new LT.CustomSlot(0, "x")], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+
+    rt.init("output(x) + 1", [new LT.CustomSlot(0, "x")], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+
+    rt.init("1 + !output(x)", [new LT.CustomSlot(0, "x")], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+
+    rt.init("!output(x)", [new LT.CustomSlot(0, "x")], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+
+    rt.init("s.push(input()) + 2 - output(x) + !x", [new LT.CustomSlot(0, "x")], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+
+    rt.init("x + output(x)", [new LT.CustomSlot(0, "x", 2)], 0);
+    state = rt.state();
+    expect(state.state).toBe(LT.SpiderStateEnum.NEW);
+    rt.step();
+    state = rt.state();
+    expect(state.output[0]).toBe(2);
+});

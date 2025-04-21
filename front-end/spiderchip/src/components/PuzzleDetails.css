@@ -10,7 +10,7 @@
 
 .text {
     max-height: 11vh;
-    overflow: scroll;
+    overflow: auto;
     padding: .5em .75em;
 }
 

@@ -17,6 +17,11 @@ const Home = () => {
     }
   };
 
+    const handleAboutClick = () => {
+        navigate("/about");
+    }
+
+
   return (
     <div className="container">
       <img src={Logo} className="logo" alt="Spiderchip Logo"/>
@@ -24,6 +29,9 @@ const Home = () => {
       <button className="startButton" onClick={handleStartClick}>
         START
       </button>
+      <button className="startButton" onClick={handleAboutClick}>
+        ABOUT
+       </button>
 
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>

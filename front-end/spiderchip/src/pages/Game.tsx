@@ -8,11 +8,18 @@ const Game = () => {
         navigate("/level-select");
     }
 
+    const handleAboutClick = () => {
+        navigate("/about");
+    }
+
     return (
         <div className="game-home-container">
             <div className="game-home-content">
                 <h1>Welcome to the Game!</h1>
-                <button className="primary-button" onClick={handleClick}>Go to Level Select</button>
+                <div style={{display: 'flex', gap: '1em', justifyContent: 'center', paddingTop: '1em'}}>
+                    <button className="primary-button" onClick={handleClick}>Go to Level Select</button>
+                    <button className="primary-button" onClick={handleAboutClick}>About SpiderChip</button>
+                </div>
             </div>
         </div>
     );

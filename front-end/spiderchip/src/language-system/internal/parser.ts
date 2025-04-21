@@ -439,32 +439,47 @@ function parseTextLineIndent(parse: LineParse, indent: IndentTracker): IndentInf
 }
 
 function parseTextLineAST(parse: LineParse, indent: IndentTracker, canElse: boolean, result: PT.ParseResult): PT.ASTNode {
+    const startPos = parse.pos;
+
+    // not an identifier - so we're just a solo equation
     if (!parse.match(RE_IDENTIFIER)) {
-        throw new Error(`Unrecognized line.`);
+        return parseEquation(RE_EOL, parse, result);
     }
+
     const identifier = parse.matched;
     const matchType = classifyIdentifier(result.data, identifier);
 
-    // saw a variable name, so this will be an assignment
+    // saw a variable name, so this is likely to be an assignment
     if (matchType === IdentifierType.VAR) {
         const varslot = parseVarslot(identifier, parse, result);
         parse.match(RE_WS_OPT);
         if (!parse.match(RE_EQU)) {
-            throw new Error(`Expected '=' at position '${parse.pos}'.`);
+            // wait - we're not an assignment, we're an equation!
+            // but if they do try to assign, show them where the = should have gone
+            // (this helps prevent confusion about doing x + 2 = input() instead of x[2] = input())
+            const ogPosition = parse.pos;
+            parse.pos = startPos;
+            try {
+                return parseEquation(RE_EOL, parse, result);
+            } catch (e) {
+                if (parse.line.indexOf("=") > 0) {
+                    throw new Error(`Expected '=' following variable at position '${ogPosition}'`);
+                } else {
+                    throw e;
+                }
+            }
+        } else {
+            parse.match(RE_WS_OPT);
+            const equation = parseEquation(RE_EOL, parse, result);
+            return new PT.ASTAssignment(varslot, equation);
         }
-        parse.match(RE_WS_OPT);
-        const equation = parseEquation(RE_EOL, parse, result);
-        return new PT.ASTAssignment(varslot, equation);
     }
 
-    // saw an object name, so expect it to be `obj.func(...)`
-    else if (matchType === IdentifierType.OBJ) {
-        return parseObjFunction(identifier, parse, result);
-    }
-
-    // saw a function name, so expect it to be `func(...)`
-    else if (matchType === IdentifierType.FUNC) {
-        return parseFunction(identifier, parse, result);
+    // saw an object or function name, so expect an equation line
+    else if (matchType === IdentifierType.OBJ || matchType === IdentifierType.FUNC) {
+        // we need to undo the fact that we matched this, so the equation parser can get it
+        parse.pos = startPos;
+        return parseEquation(RE_EOL, parse, result);
     }
 
     // saw a keyword, so it's going to be one of the builtins like if, while, or jump

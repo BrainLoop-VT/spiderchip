@@ -1,0 +1,76 @@
+.memo-container {
+    position: relative;
+	display: flex;
+	flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
+	padding: 20px;
+    background-color: #322213;
+}
+
+.memo-corner {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 12%;
+}
+
+.memo-container button {
+    width: fit-content;
+}
+
+.content-overlay {
+    padding: 1rem;
+    background-color: #e5d3a5;
+	flex: 1;
+}
+
+.content-overlay section {
+    margin-bottom: 2rem;
+}
+
+.content-overlay h1 {
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.content-overlay h2 {
+    margin-bottom: 1rem;
+}
+
+.content-overlay h3 {
+    margin-bottom: 1rem;
+}
+
+.content-overlay ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.content-overlay li {
+    margin: 0.5rem 0;
+    position: relative;
+    display: block;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    padding-right: 1rem;
+}
+
+.content-overlay li::before {
+    content: "•";
+    position: absolute;
+    left: -1rem;
+    top: 0;
+}
+
+.content-overlay li + li {
+    margin-top: 0.75rem;
+}
+
+.content-overlay p {
+    white-space: pre-wrap;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+}

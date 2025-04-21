@@ -35,6 +35,8 @@ export class ExecutionEngine {
     shouldFollowIndent: boolean = false; // for if/else/while statements
     indentSourceStack: number[] = []; // lines we indented off of
 
+    animations: LT.SpiderAnimation[] = []; // animations of the previous line's evaluation
+
     constructor(puzzle: LT.Puzzle, test: LT.PuzzleTest, text: string, variables: LT.CustomSlot[]) {
         this.puzzle = puzzle;
         this.test = test;
@@ -89,8 +91,7 @@ export class ExecutionEngine {
     }
 
     anim(): LT.SpiderAnimation[] {
-        // TODO: Not implemented. Not targeted for MVP.
-        return [];
+        return this.animations.map((x) => { return { ...x } });
     }
 
     step(): undefined {
@@ -106,12 +107,15 @@ export class ExecutionEngine {
         this.rtState = LT.SpiderStateEnum.RUNNING;
 
         try {
+            this.animations = [];
             this.continueToNextLine();
             this.executeCurrentLine();
         } catch (e: unknown) {
             if (e instanceof Error) {
+                const benign = e instanceof BenignHalt;
                 this.haltReason = e.message;
-                if (e instanceof BenignHalt) {
+                this.animations.push({ type: LT.SpiderAnimationType.HALT, crash: !benign });
+                if (benign) {
                     // they did a "normal" halt (i.e. not an error) - let them succeed if they've done so
                     if (this.test.expectedOutput.length !== this.outputs.length
                         || !this.test.expectedOutput.every((e, i) => e === this.outputs[i])) {
@@ -126,6 +130,7 @@ export class ExecutionEngine {
                     this.rtState = LT.SpiderStateEnum.ERROR;
                 }
             } else {
+                this.animations.push({ type: LT.SpiderAnimationType.HALT, crash: true });
                 this.haltReason = "INTERNAL ERROR: Unknown throwable.";
                 this.rtState = LT.SpiderStateEnum.ERROR;
             }
@@ -241,10 +246,9 @@ export class ExecutionEngine {
             const slotLocation = this.getVarslotIndex(line.ast.varslot);
             const value = this.evalEquation(line.ast.equation);
             this.tape[slotLocation].value = value;
-        } else if (PT.ASTNode.isNodeFunccall(line.ast)) {
-            this.callFunction(line.ast.func, line.ast.equation);
-        } else if (PT.ASTNode.isNodeObjFunccall(line.ast)) {
-            this.callObjFunction(line.ast.func, line.ast.object, line.ast.equation);
+            this.animations.push({ type: LT.SpiderAnimationType.STORE, slot: slotLocation, n: value });
+        } else if (PT.ASTNode.isNodeEquation(line.ast)) {
+            this.evalEquation(line.ast);
         } else if (PT.ASTNode.isNodeIf(line.ast) || PT.ASTNode.isNodeWhile(line.ast)) {
             const eq = this.evalEquation(line.ast.equation);
             if (eq !== 0) {
@@ -253,11 +257,15 @@ export class ExecutionEngine {
         } else if (PT.ASTNode.isNodeElse(line.ast)) {
             // we should not be evaluating the else at all if we're skipping it
             this.shouldFollowIndent = true;
+        } else if (PT.ASTNode.isNodeFunccall(line.ast)) {
+            this.callFunction(line.ast.func, line.ast.equation);
+        } else if (PT.ASTNode.isNodeObjFunccall(line.ast)) {
+            this.callObjFunction(line.ast.func, line.ast.object, line.ast.equation);
         } else if (PT.ASTNode.isNodeJump(line.ast)) {
             const node = line.ast; // TS doesn't like smart casting into the `find`
             this.jumpTo = this.labels.find((l) => l.name === node.destination)?.lineNumber;
         } else {
-            throw new Error(`INTERNAL ERROR: Unrecognized root node type ${typeof line.ast}.`);
+            throw new Error(`INTERNAL ERROR: Unrecognized root node on line ${this.currentLine}.`);
         }
 
         if (ALLOW_EARLY_FAIL) {
@@ -375,75 +383,108 @@ export class ExecutionEngine {
 
     evalEquation(node: PT.ASTNode): number {
         if (PT.ASTNode.isNodeEquation(node)) {
-            // note: never evaluate a side more than once, as they may have side effects
-            const left = this.evalEquation(node.eq.left);
-            if (node.eq.unary) {
-                switch (node.eq.operator) {
-                    case "-":
-                        return -1 * left;
-                    case "!":
-                        return left === 0 ? 1 : 0;
-                }
-            } else {
-                // note: don't pre-evaluate `right` because of possible short circuit
-                switch (node.eq.operator) {
-                    case "+":
-                        return this.wrapNumber(left + this.evalEquation(node.eq.right));
-                    case "-":
-                        return this.wrapNumber(left - this.evalEquation(node.eq.right));
-                    case "*":
-                        return this.wrapNumber(left * this.evalEquation(node.eq.right));
-                    case "/": {
-                        const right = this.evalEquation(node.eq.right);
-                        if (right === 0) {
-                            throw new Error("Division by zero.");
-                        }
-                        return this.wrapNumber(Math.floor(left / this.evalEquation(node.eq.right)));
-                    }
-                    case "%": {
-                        const right = this.evalEquation(node.eq.right);
-                        if (right === 0) {
-                            throw new Error("Modulus by zero.");
-                        }
-                        return this.wrapNumber(left % this.evalEquation(node.eq.right));
-                    }
-                    case ">":
-                        return left > this.evalEquation(node.eq.right) ? 1 : 0;
-                    case ">=":
-                        return left >= this.evalEquation(node.eq.right) ? 1 : 0;
-                    case "==":
-                        return left == this.evalEquation(node.eq.right) ? 1 : 0;
-                    case "!=":
-                        return left != this.evalEquation(node.eq.right) ? 1 : 0;
-                    case "<=":
-                        return left <= this.evalEquation(node.eq.right) ? 1 : 0;
-                    case "<":
-                        return left < this.evalEquation(node.eq.right) ? 1 : 0;
-                    case "&&": {
-                        if (left === 0) {
-                            return 0;
-                        }
-                        return this.evalEquation(node.eq.right) === 0 ? 0 : 1;
-                    }
-                    case "||": {
-                        if (left !== 0) {
-                            return 1;
-                        }
-                        return this.evalEquation(node.eq.right) === 0 ? 0 : 1;
-                    }
-                }
-            }
-            throw new Error(`INTERNAL ERROR: Unrecognized operator ${node.eq.operator} (unary=${node.eq.unary}).`);
+            return this.evalEquationEqNode(node);
         } else if (PT.ASTNode.isNodeNumber(node)) {
             return node.value;
         } else if (PT.ASTNode.isNodeVarslot(node)) {
-            return this.tape[this.getVarslotIndex(node)].value;
+            const slot = this.getVarslotIndex(node);
+            const value = this.tape[slot].value;
+            this.animations.push({ type: LT.SpiderAnimationType.LOAD, n: value, slot: slot });
+            return value;
         } else if (PT.ASTNode.isNodeFunccall(node)) {
             return this.callFunction(node.func, node.equation);
         } else if (PT.ASTNode.isNodeObjFunccall(node)) {
             return this.callObjFunction(node.func, node.object, node.equation);
         } else {
-            throw new Error(`INTERNAL ERROR: Unrecognized equation node type ${typeof node}.`);
+            throw new Error(`INTERNAL ERROR: Unrecognized equation node type.`);
+        }
+    }
+
+    evalEquationEqNode(node: PT.ASTEquation): number {
+        // note: never evaluate a side more than once, as they may have side effects
+        const op = node.eq.operator;
+        const left = this.evalEquation(node.eq.left);
+        if (node.eq.unary) {
+            let result: number;
+            switch (op) {
+                case "-":
+                    result = -1 * left;
+                    break;
+                case "!":
+                    result = left === 0 ? 1 : 0;
+                    break;
+                default:
+                    throw new Error(`INTERNAL ERROR: Unrecognized unary operator ${op}`);
+            }
+            this.animations.push({ type: LT.SpiderAnimationType.MATH_UNARY, result: 0, operator: op, value: left });
+            return result;
+        } else {
+            // get this out of the way since they can short circuit
+            if (op === "&&" && left === 0) {
+                this.animations.push({ type: LT.SpiderAnimationType.MATH_SHORTED, result: 0, operator: op, left: left });
+                return 0;
+            }
+            // the other short-circuit candidate
+            else if (op === "||" && left !== 0) {
+                this.animations.push({ type: LT.SpiderAnimationType.MATH_SHORTED, result: 1, operator: op, left: left });
+                return 1;
+            } else {
+                const right = this.evalEquation(node.eq.right);
+                let result: number;
+                switch (op) {
+                    case "+":
+                        result = this.wrapNumber(left + right);
+                        break;
+                    case "-":
+                        result = this.wrapNumber(left - right);
+                        break;
+                    case "*":
+                        result = this.wrapNumber(left * right);
+                        break;
+                    case "/": {
+                        if (right === 0) {
+                            throw new Error("Division by zero.");
+                        }
+                        result = this.wrapNumber(Math.floor(left / right));
+                        break;
+                    }
+                    case "%": {
+                        if (right === 0) {
+                            throw new Error("Modulus by zero.");
+                        }
+                        result = this.wrapNumber(left % right);
+                        break;
+                    }
+                    case ">":
+                        result = left > right ? 1 : 0;
+                        break;
+                    case ">=":
+                        result = left >= right ? 1 : 0;
+                        break;
+                    case "==":
+                        result = left == right ? 1 : 0;
+                        break;
+                    case "!=":
+                        result = left != right ? 1 : 0;
+                        break;
+                    case "<=":
+                        result = left <= right ? 1 : 0;
+                        break;
+                    case "<":
+                        result = left < right ? 1 : 0;
+                        break;
+                    case "&&":
+                        result = right === 0 ? 0 : 1;
+                        break;
+                    case "||":
+                        result = right === 0 ? 0 : 1;
+                        break;
+                    default:
+                        throw new Error(`INTERNAL ERROR: Unrecognized operator ${op}`);
+                }
+                this.animations.push({ type: LT.SpiderAnimationType.MATH, result: result, operator: op, left: left, right: right });
+                return result;
+            }
         }
     }
 
@@ -460,7 +501,9 @@ export class ExecutionEngine {
     callFunction(funcname: string, arg: PT.ASTNode | undefined): number {
         if (arg) {
             if (funcname === "output") {
-                this.outputs.push(this.evalEquation(arg));
+                const v = this.evalEquation(arg);
+                this.outputs.push(v);
+                this.animations.push({ type: LT.SpiderAnimationType.OUTPUT, n: v });
                 return 0;
             }
         } else {
@@ -469,6 +512,7 @@ export class ExecutionEngine {
                 if (!v) {
                     throw new BenignHalt("No inputs remaining.");
                 }
+                this.animations.push({ type: LT.SpiderAnimationType.INPUT, n: v });
                 return v;
             } else if (funcname === "end") {
                 throw new BenignHalt("Halted normally.");
@@ -486,9 +530,11 @@ export class ExecutionEngine {
             const argVal = this.evalEquation(arg);
             if (obj.type === "stack" && funcname === "push") {
                 obj.contents.push(argVal);
+                this.animations.push({ type: LT.SpiderAnimationType.OBJ_PUSH, object: objname, n: argVal, index: obj.contents.length - 1 });
                 return 0;
             } else if (obj.type === "queue" && funcname === "enqueue") {
                 obj.contents.push(argVal);
+                this.animations.push({ type: LT.SpiderAnimationType.OBJ_PUSH, object: objname, n: argVal, index: obj.contents.length - 1 });
                 return 0;
             }
         } else {
@@ -504,9 +550,12 @@ export class ExecutionEngine {
                     if (!v) {
                         throw new Error(`${obj.name} is empty.`);
                     }
+                    this.animations.push({ type: LT.SpiderAnimationType.OBJ_TAKE, object: objname, n: v, index: obj.contents.length });
                     return v;
                 } else if (funcname === "length") {
-                    return obj.contents.length;
+                    const v = obj.contents.length;
+                    this.animations.push({ type: LT.SpiderAnimationType.OBJ_EXAMINE, object: objname, n: v });
+                    return v;
                 }
             } else if (obj.type === "queue") {
                 if (funcname === "dequeue") {
@@ -514,9 +563,12 @@ export class ExecutionEngine {
                     if (!v) {
                         throw new Error(`${obj.name} is empty.`);
                     }
+                    this.animations.push({ type: LT.SpiderAnimationType.OBJ_TAKE, object: objname, n: v, index: 0 });
                     return v;
                 } else if (funcname === "length") {
-                    return obj.contents.length;
+                    const v = obj.contents.length;
+                    this.animations.push({ type: LT.SpiderAnimationType.OBJ_EXAMINE, object: objname, n: v });
+                    return v;
                 }
             }
         }

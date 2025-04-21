@@ -20,6 +20,11 @@ exports[`Home Component - AuthModal Integration opens AuthModal when clicking ST
     >
       START
     </button>
+    <button
+      class="startButton"
+    >
+      ABOUT
+    </button>
     <div
       data-testid="auth-modal"
     >
@@ -51,6 +56,11 @@ exports[`Home Component - AuthModal Integration updates AuthModal to "Modal Clos
       class="startButton"
     >
       START
+    </button>
+    <button
+      class="startButton"
+    >
+      ABOUT
     </button>
     <div
       data-testid="auth-modal"
@@ -84,6 +94,11 @@ exports[`Home Component - AuthModal Integration updates AuthModal to "Modal Clos
     >
       START
     </button>
+    <button
+      class="startButton"
+    >
+      ABOUT
+    </button>
     <div
       data-testid="auth-modal"
     >
@@ -115,6 +130,11 @@ exports[`Home Component - AuthModal Integration updates AuthModal to "Modal Clos
       class="startButton"
     >
       START
+    </button>
+    <button
+      class="startButton"
+    >
+      ABOUT
     </button>
     <div
       data-testid="auth-modal"
