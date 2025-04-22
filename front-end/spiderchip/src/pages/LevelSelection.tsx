@@ -20,21 +20,28 @@ export default function LevelSelection(props: { setSelectedLevel: (level: LevelI
     useEffect(() => {
         const fetchLevels = async () => {
             try {
-                console.log('Auth header:', api.defaults.headers.common["Authorization"]);
+                // Check if we have a token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    // navigate('/'); // Redirect to login if no token
+                    return;
+                }
+
                 const response = await api.get('/levels');
-                const sortedLevels = response.data.sort((a: LevelItem, b: LevelItem) => a.puzzleNumber - b.puzzleNumber);
+                const sortedLevels = response.data.sort((a: LevelItem, b: LevelItem) => 
+                    a.puzzleNumber - b.puzzleNumber
+                );
                 setLevelList(sortedLevels);
             } catch (error: any) {
-                console.error('Failed to fetch levels:', {
-                    status: error.response?.status,
-                    data: error.response?.data,
-                    headers: error.response?.headers
-                });
+                if (error.response?.status === 401) {
+                    // navigate('/'); // Also redirect on auth errors
+                }
+                console.error('Failed to fetch levels:', error);
             }
         };
 
         fetchLevels();
-    }, []);
+    }, [navigate]);
 
     const toggleDropdown = () => {
         setDropdownVisible(!dropdownVisible)

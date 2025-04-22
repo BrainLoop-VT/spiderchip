@@ -8,24 +8,20 @@ interface LevelWithProgress {
     id: string;
     title: string;
     description: string;
-    preDescription?: string;
     puzzleNumber: number;
     status: 'completed' | 'skipped' | 'available' | 'not-available';
     inputData: {
+        overview: string;
         slot_count: number;
         slot_names: (string | null)[];
         objects: Array<{ name: string, type: string }>;
         test_cases: Array<{
+            slots?: number[];
             input: number[];
-            expected_output: number[];
-            description: string;
+            target?: number[];
+            cmd?: Record<string, number[]>;
         }>;
-        solution_code: string;
-        target_line_count: number;
-        bonus_solution_code?: string;
-        bonus_line_count?: number;
         hints: string[];
-        Pre_description: string;
     };
 }
 
@@ -45,8 +41,7 @@ export class LevelService {
             id: level.id,
             title: level.title,
             description: level.description,
-            preDescription: (level.input_data as any)?.Pre_description,
-            puzzleNumber: (level as any).puzzle_number,
+            puzzleNumber: level.puzzle_number,
             status: 'available',
             inputData: level.input_data as LevelWithProgress['inputData']
         }));
@@ -73,7 +68,6 @@ export class LevelService {
             id: level.id,
             title: level.title,
             description: level.description,
-            preDescription: (level.input_data as any)?.Pre_description,
             puzzleNumber: level.puzzle_number,
             status: this.determineStatus(level.user_progress?.[0]),
             inputData: level.input_data as LevelWithProgress['inputData']
@@ -95,7 +89,6 @@ export class LevelService {
             id: level.id,
             title: level.title,
             description: level.description,
-            preDescription: (level.input_data as any)?.Pre_description,
             puzzleNumber: level.puzzle_number,
             status: 'available',
             inputData: level.input_data as LevelWithProgress['inputData']
@@ -132,7 +125,6 @@ export class LevelService {
             id: level.id,
             title: level.title,
             description: level.description,
-            preDescription: (level.input_data as any)?.Pre_description,
             puzzleNumber: level.puzzle_number,
             status: this.determineStatus(progress),
             inputData: level.input_data as LevelWithProgress['inputData']

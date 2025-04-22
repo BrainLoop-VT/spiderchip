@@ -7,6 +7,7 @@ import { LevelItem } from "./types.ts";
 import { useEffect, useState } from "react";
 import About from './pages/About';
 import LanguageExplanation from './pages/LanguageExplanation.tsx';
+import { setAuthToken } from './services/api.ts';
 
 
 const isAuthenticated = () => {

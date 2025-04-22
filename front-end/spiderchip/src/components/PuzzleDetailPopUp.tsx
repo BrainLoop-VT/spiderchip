@@ -43,7 +43,7 @@ export default function PuzzleDetailsPopUp(props: Props) {
                     </div>
                     <div>
                         <h3>Instructions</h3>
-                        <p>{props.level.description}</p>
+                        <p>{props.level.inputData.overview}</p>
                     </div>
                 </div>
                 <div className="puzzle-details-buttons">
@@ -57,7 +57,7 @@ export default function PuzzleDetailsPopUp(props: Props) {
                                     type="checkbox"
                                     onChange={handleCheckboxChange}
                                     checked={isChecked}
-                                    disabled={props.level.status === "completed" || props.level.status === "not-available" || props.level.status === "skipped"}
+                                    disabled={props.level.status === "not-available" || props.level.status === "skipped"}
                                 />
                                 Skip
                             </label>
